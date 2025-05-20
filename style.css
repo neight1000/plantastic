@@ -23,6 +23,14 @@ nav a {
 nav a:hover {
   text-decoration: underline;
   color: #bbb;
+  a:hover, nav a:hover {
+  color: #00ff00 !important;
+  text-decoration: underline;
+}
+
+a:visited, nav a:visited {
+  color: #ffff00 !important;
+}
 }
 
 main {
