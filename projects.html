@@ -1,61 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Plant Harmonic Synth – Full UI + Ambient Automation</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Plant Harmonic Synth – Full UI + Ambient Automation">
-  <meta property="og:title" content="Plant Harmonic Synth">
-  <meta property="og:description" content="A generative synth with interactive ambient controls.">
-  <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Project List</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="list.css">
 </head>
 <body>
   <main>
-    <canvas id="waveCanvas" aria-label="Oscilloscope visualization"></canvas>
-    <section class="ui" aria-label="Synth controls">
-      <div>
-        <label for="preset">Preset</label>
-        <select id="preset" aria-label="Preset">
-          <option value="greenhouse">Greenhouse</option>
-          <option value="deep">Deep Space</option>
-          <option value="bright">Daylight</option>
-        </select>
-      </div>
-      <div>
-        <label for="delay">Delay</label>
-        <input type="range" id="delay" min="0.05" max="1.5" step="0.01" value="0.8" aria-label="Delay"/>
-      </div>
-      <div>
-        <label for="echo">Echo</label>
-        <input type="range" id="echo" min="0" max="0.95" step="0.01" value="0.6" aria-label="Echo"/>
-      </div>
-      <div>
-        <label for="filter">Filter</label>
-        <input type="range" id="filter" min="200" max="4000" step="1" value="1000" aria-label="Filter"/>
-      </div>
-      <div>
-        <label for="freq">Frequency</label>
-        <input type="range" id="freq" min="100" max="400" step="1" value="180" aria-label="Frequency"/>
-      </div>
-      <div>
-        <label for="volume">Volume</label>
-        <input type="range" id="volume" min="0" max="100" value="60" aria-label="Volume"/>
-      </div>
-      <div>
-        <label for="particles">Particles</label>
-        <input type="range" id="particles" min="1" max="40" value="9" aria-label="Particles"/>
-      </div>
-      <div>
-        <label for="bpm">BPM</label>
-        <input type="range" id="bpm" min="50" max="130" value="90" aria-label="BPM"/>
-      </div>
-      <button id="play" aria-label="Play">PLAY</button>
-      <button id="stop" aria-label="Stop">STOP</button>
-      <button id="fullscreen" aria-label="Toggle Fullscreen">FULLSCREEN</button>
-    </section>
+    <h1>Project Versions</h1>
+    <ul id="project-list"></ul>
   </main>
-  <script src="main.js"></script>
+  <script src="list.js"></script>
 </body>
 </html>
