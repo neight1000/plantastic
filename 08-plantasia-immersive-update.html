@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Plantasia – Instrumentation Tribute</title>
+  <title>Plantasia – Instrumentation Tribute (Updated)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Accessibility: Improved color contrast, font size, and variables for easier theming -->
   <style>
     :root {
       --primary-color: #00ffe0;
@@ -35,10 +34,7 @@
       display: block;
       background: var(--background-color);
     }
-    /* Accessibility: visually hides canvas for screen readers, but provides alt text */
-    #waveCanvas[aria-label] {
-      outline: none;
-    }
+    #waveCanvas[aria-label] { outline: none; }
     .ui {
       position: absolute;
       bottom: 0;
@@ -55,14 +51,8 @@
       box-shadow: 0 -2px 32px #000c;
       transition: transform 0.22s cubic-bezier(.87,0,.13,1);
     }
-    .ui.closed {
-      transform: translateY(105%);
-      pointer-events: none;
-    }
-    .ui.open {
-      transform: translateY(0%);
-      pointer-events: auto;
-    }
+    .ui.closed { transform: translateY(105%); pointer-events: none; }
+    .ui.open { transform: translateY(0%); pointer-events: auto; }
     .drawer-toggle-btn {
       position: fixed;
       right: 24px;
@@ -122,10 +112,7 @@
       align-items: center;
       gap: 7px;
     }
-    .mod-row label {
-      font-size: 12px;
-    }
-    /* MIDI visual feedback */
+    .mod-row label { font-size: 12px; }
     #midiIndicator {
       position: fixed;
       left: 24px;
@@ -142,7 +129,6 @@
       background: var(--primary-color);
       box-shadow: 0 0 20px var(--primary-color);
     }
-    /* Responsive */
     @media (max-width:700px) {
       .ui { flex-direction:column; align-items:stretch; max-width:99vw; min-width:90vw; border-radius: 20px 20px 0 0; }
       .ui > div { margin:0 0 8px 0; }
@@ -150,10 +136,7 @@
       .ui button { min-width: 90vw; }
       .drawer-toggle-btn { width: 44px; height: 44px; font-size: 28px; }
     }
-    /* Focus states for accessibility */
-    select:focus, input[type="range"]:focus, button:focus {
-      outline: var(--focus-outline);
-    }
+    select:focus, input[type="range"]:focus, button:focus { outline: var(--focus-outline); }
   </style>
 </head>
 <body>
@@ -262,177 +245,17 @@
   <button id="toggleDisplay" aria-label="Show instrument data" title="Show instrument data">DATA</button>
   <button id="toggleMidiIn" aria-label="Toggle MIDI input" title="Toggle MIDI input">midi</button>
 </div>
-<!-- Loading indicator for audio context -->
 <div id="loading" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#111c;padding:2em 3em;color:#fff;border-radius:1em;z-index:99;font-size:1.3em;">Loading...</div>
 
 <script>
-/**
- * Accessibility: Allow keyboard navigation to all controls
- * Save/restore user settings (preset, BPM, volume, etc.)
- * Debounced input handlers for sliders
- * MIDI input visual feedback
- * Error handling for audio/MIDI context
- */
-
+// DOM helpers
 const $ = id => document.getElementById(id);
 
+// Drawer logic with accessibility
 const drawer = $("drawer");
 const openDrawerBtn = $("openDrawer");
 const closeDrawerBtn = $("closeDrawer");
-const loadingIndicator = $("loading");
-const midiIndicator = $("midiIndicator");
-const infoDisplay = $("infoDisplay");
-let midiFeedbackTimeout = null;
-
-function showLoading(show) {
-  loadingIndicator.style.display = show ? 'block' : 'none';
-}
-
-// Drawer logic
-function openDrawer() {
-  drawer.classList.remove('closed');
-  drawer.classList.add('open');
-  openDrawerBtn.style.display = 'none';
-  closeDrawerBtn.focus();
-}
-function closeDrawer() {
-  drawer.classList.remove('open');
-  drawer.classList.add('closed');
-  openDrawerBtn.style.display = '';
-  openDrawerBtn.focus();
-}
 openDrawerBtn.addEventListener('click', openDrawer);
 closeDrawerBtn.addEventListener('click', closeDrawer);
-// Keyboard support for drawer toggle
-openDrawerBtn.addEventListener('keydown', e => { if (e.key === "Enter" || e.key === " ") openDrawer(); });
-closeDrawerBtn.addEventListener('keydown', e => { if (e.key === "Enter" || e.key === " ") closeDrawer(); });
-
-// Accessibility: trap focus inside the drawer when open
-drawer.addEventListener('keydown', function(e) {
-  if (e.key === "Tab") {
-    const focusables = drawer.querySelectorAll('button, select, input[type="range"]');
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault(); last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault(); first.focus();
-    }
-  }
-});
-
-// --- Instrumentation parameters per preset ---
-// (Same as before, truncated for brevity -- keep your full presetSettings here)
-const presetSettings = {/* ... same as before ... */};
-
-// User settings persistence
-function saveSettings() {
-  const settings = {
-    preset: $("preset").value,
-    bpm: $("bpm").value,
-    volume: $("volume").value,
-    waveform: $("waveformSelect").value
-    // Add more as needed
-  };
-  localStorage.setItem("plantasticSettings", JSON.stringify(settings));
-}
-function loadSettings() {
-  try {
-    const settings = JSON.parse(localStorage.getItem("plantasticSettings") || '{}');
-    if (settings.preset) $("preset").value = settings.preset;
-    if (settings.bpm) $("bpm").value = settings.bpm;
-    if (settings.volume) $("volume").value = settings.volume;
-    if (settings.waveform) $("waveformSelect").value = settings.waveform;
-  } catch {}
-}
-window.addEventListener('DOMContentLoaded', () => {
-  loadSettings();
-  // Debounced slider handlers
-  ["delay","echo","filter","freq","volume","bpm","lfoRate","lfoAmt"].forEach(id => {
-    const el = $(id);
-    if (!el) return;
-    let timer = null;
-    el.addEventListener('input', () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        saveSettings();
-        if (id === "volume" && masterGain) masterGain.gain.value = parseFloat(el.value) / 100;
-        if (id === "bpm" && !stopped) {
-          bpm = Math.round(el.value);
-          scheduleNotes(getScaleFromPreset());
-        }
-        if (infoDisplay.style.display !== "none") updateDisplay();
-      }, 50);
-    });
-  });
-});
-
-// Main audio, MIDI, and UI logic
-let audioCtx, analyser, masterGain, reverbNode, bufferLength, dataArray;
-let bpm = 90, bpmTimer = null, stopped = true;
-let trailFrames = [], currentWaveColor = "#00FF7F";
-let canvas = $("waveCanvas"), ctx = canvas.getContext("2d");
-
-// ... (The rest of your audio/MIDI engine goes here, with let/const for variables.)
-
-// MIDI feedback
-function showMidiFeedback() {
-  midiIndicator.classList.add('active');
-  clearTimeout(midiFeedbackTimeout);
-  midiFeedbackTimeout = setTimeout(() => midiIndicator.classList.remove('active'), 200);
-}
-
-// Error handling for MIDI
-function setupMidi() {
-  if (!navigator.requestMIDIAccess) {
-    alert("MIDI not supported in your browser.");
-    return;
-  }
-  navigator.requestMIDIAccess().then(midi => {
-    midiAccess = midi;
-    // ... (rest of MIDI setup)
-  }, err => {
-    alert("Unable to access MIDI devices.");
-    console.warn("No MIDI access", err);
-  });
-}
-
-// Loading indicator for AudioContext
-function initAudio() {
-  showLoading(true);
-  setTimeout(() => { // Simulate loading for demo; remove in production
-    try {
-      if (audioCtx) return;
-      // ... (rest of your initAudio code)
-      showLoading(false);
-    } catch (e) {
-      showLoading(false);
-      alert("Failed to initialize audio context: " + e.message);
-    }
-  }, 500);
-}
-
-// Instrument data toggle
-$("toggleDisplay").addEventListener("click", () => {
-  infoDisplay.style.display = infoDisplay.style.display === "none" ? "block" : "none";
-  if (infoDisplay.style.display !== "none") updateDisplay();
-});
-
-// Tooltips for all buttons
-document.querySelectorAll('button[title]').forEach(btn => {
-  btn.addEventListener('focus', e => btn.setAttribute('aria-label', btn.title));
-  btn.addEventListener('blur', e => btn.removeAttribute('aria-label'));
-});
-
-// Keyboard shortcut: Space to play/pause
-window.addEventListener('keydown', e => {
-  if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "SELECT") return;
-  if (e.key === " ") {
-    if (stopped) $("play").click();
-    else $("stop").click();
-  }
-});
-
-</script>
-</body>
-</html>
+openDrawerBtn.addEventListener('keydown', e =>
+
