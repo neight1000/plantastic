@@ -20,17 +20,16 @@ nav a {
   font-weight: bold;
   letter-spacing: 0.04em;
 }
-nav a:hover {
+
+nav a:hover,
+a:hover {
   text-decoration: underline;
-  color: #bbb;
-  a:hover, nav a:hover {
-  color: #00ff00 !important;
-  text-decoration: underline;
+  color: #00ff00 !important; /* bright green on hover */
 }
 
-a:visited, nav a:visited {
-  color: #ffff00 !important;
-}
+nav a:visited,
+a:visited {
+  color: #ffff00 !important; /* yellow for visited links */
 }
 
 main {
@@ -49,7 +48,8 @@ h1 {
   letter-spacing: 0.03em;
 }
 
-.button, a.button {
+.button,
+a.button {
   display: inline-block;
   background: #222;
   color: #fff;
@@ -62,7 +62,9 @@ h1 {
   transition: background 0.15s, color 0.15s;
   border: 1px solid #fff;
 }
-.button:hover, a.button:hover {
+
+.button:hover,
+a.button:hover {
   background: #fff;
   color: #000;
 }
